@@ -140,7 +140,12 @@ private struct SliderView: View {
     let colorScheme: ColorScheme
     let onChange: () -> Void
     let onChangeEnd: () -> Void
-
+    
+    @GestureState private var dragOffsetY: CGFloat = 0
+    @State private var isTapped = false
+    
+    private let tapAnimation: Animation? = .smooth(duration: 0.3, extraBounce: 0.0)
+    
     private var halfThumbSize: CGFloat {
         sliderHeight / 2
     }
@@ -152,15 +157,24 @@ private struct SliderView: View {
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                isDragging = true
-                updateOffset(at: value.location.x)
-                onChange()
-            }
-            .onEnded { _ in
+            .updating($dragOffsetY) { (value, offsetY, transaction) in
+                offsetY = value.location.x
+                updateOffset(at: offsetY)
+                isTapped = true
                 isDragging = false
-                onChangeEnd()
             }
+            .simultaneously(with: DragGesture(minimumDistance: 1)
+                .onChanged { value in
+                    isTapped = false
+                    isDragging = true
+                    updateOffset(at: value.location.x)
+                    onChange()
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    onChangeEnd()
+                }
+            )
     }
 
     var body: some View {
@@ -170,7 +184,7 @@ private struct SliderView: View {
             sliderThumb
         }
         .gesture(dragGesture)
-        .animation(.easeIn(duration: 0.1), value: offset)
+        .animation(isTapped ? tapAnimation : nil, value: offset)
     }
 
     private var sliderTrack: some View {
