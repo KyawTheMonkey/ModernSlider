@@ -144,7 +144,7 @@ private struct SliderView: View {
     @GestureState private var dragOffsetY: CGFloat = 0
     @State private var isTapped = false
     
-    private let tapAnimation: Animation? = .smooth(duration: 0.3, extraBounce: 0.0)
+    private let tapAnimation: Animation? = .smooth(duration: 0.38, extraBounce: 0.0)
     
     private var halfThumbSize: CGFloat {
         sliderHeight / 2
